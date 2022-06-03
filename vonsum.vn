@@ -1,0 +1,13 @@
+L0 IF N0 /= 0 GOTO L1
+   GOTO L2
+L1 N0 <- N0 - 1
+   P0 <- >P0
+   GOTO L0
+L2 P1 <- e
+   IF P0 BEGINS @ GOTO L3
+   IF P0 BEGINS # GOTO L4
+   GOTO L5
+L3 P1 <- P1.@
+   GOTO L5
+L4 P1 <- P1.#
+L5 P0 <- P1
