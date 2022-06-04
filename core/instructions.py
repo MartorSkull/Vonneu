@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import logging
 import re
 
 class VonNeumannInstruction(object):
@@ -10,7 +11,11 @@ class VonNeumannInstruction(object):
         self.alph = alph
         self.instMatch = self.instMatch.format(alph=self.alph)
         self.syntMatch = self.syntMatch.format(alph=self.alph)
-        self.args = re.fullmatch(self.syntMatch, inst).groups()
+        self.match = re.fullmatch(self.syntMatch, inst)
+        if (self.match is not None):
+            self.args = self.match.groups()
+        else:
+            raise SyntaxError(f"Unable to parse instruction: {self.inst}")
 
     def __str__(self):
         return self.inst

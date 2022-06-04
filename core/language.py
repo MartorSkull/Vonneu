@@ -3,25 +3,41 @@ import re
 import logging
 
 from collections import defaultdict
+from itertools import tee
 
 from .instructions import *
 
 
 class VonNeumannLanguage(object):
-    def __init__(self, program, alph=r"[A-Za-z0-9]"):
+    def __init__(self, program, alph):
         self.alph = alph
-        logging.debug(f"Language Regex={self.get_regex()}")
-        non_parsed_insts = re.finditer(self.get_regex(), program)
+        self.program = program
+        self._parse_program()
+        logging.debug(f"Instructions={self.instrs}")
+        logging.debug(f"Labels={self.labels}")
+
+    def _parse_program(self):
+        non_parsed_insts = re.finditer(self.get_regex(), self.program)
         self.instrs = []
         self.labels = {}
+        last_stop = 0
         for i, m in enumerate(non_parsed_insts):
+            span = m.span()
+            # Check that the entire string was matched
+            if (last_stop!=span[0]):
+                raise SyntaxError(f"On instruction {i+1}: Could not "
+                f"match {self.program[last_stop:span[0]]}"
+                )
+            last_stop = span[1]
             g = m.lastgroup
-            self.instrs.append(instruction_dict[g](m.group(g), self.alph))
+            try:
+                inst = instruction_dict[g](m.group(g), self.alph)
+            except SyntaxError as e:
+                raise SyntaxError(f"On line {i+1}. {e.msg}") from None
+            self.instrs.append(inst)
             label = m.group(1)
             if (label is not None):
                 self.labels[label] = i
-        logging.debug(f"Instructions={self.instrs}")
-        logging.debug(f"Labels={self.labels}")
 
     def get_regex(self):
         if (hasattr(self,"_regex")):
@@ -32,6 +48,7 @@ class VonNeumannLanguage(object):
         r = r[:-1]
         r += r")"
         self._regex = r
+        logging.debug(f"Language Regex={self.get_regex()}")
         return r
 
     def __call__(self, numbs, words, ret):
