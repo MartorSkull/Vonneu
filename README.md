@@ -114,6 +114,9 @@ This macro calculates the sum of two variables. To prevent the interpreter from 
 
 This code will not run unles the interpreter is started with the `-O1` argument.
 
+## Whitespace
+Whitespace is irrelevant except for the python optimized code. When interpreting the parser removes all whitespace.
+
 ## Running the interpreter
 To run a program use the `vonneu.py` script. For example:
 ```
