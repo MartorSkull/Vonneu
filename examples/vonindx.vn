@@ -1,6 +1,6 @@
 L0 IF N0 /= 0 GOTO L1
    GOTO L2
-L1 N0 <- N0 - 1
+L1 N0 <- N0 .- 1
    P0 <- >P0
    GOTO L0
 L2 P1 <- e

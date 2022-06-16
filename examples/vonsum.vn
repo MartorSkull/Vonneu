@@ -1,6 +1,6 @@
 L2 IF N1 /= 0 GOTO L0
    GOTO L1
 L0 N0 <- N0 + 1
-   N1 <- N1 - 1
+   N1 <- N1 .- 1
    GOTO L2
 L1 SKIP

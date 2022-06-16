@@ -4,10 +4,9 @@ import logging
 import argparse
 import sys
 
-from core.language import *
-
-def clean_program(program: str):
-    return program.replace(" ", "").replace("\n", "").replace("\t", "")
+from core import *
+from core import instructions
+from core.utils import LanguageSettings, clean_program
 
 aparser = argparse.ArgumentParser(
     description="Process and interpret Sigma-Von Neumann imperative Programs"
@@ -22,7 +21,7 @@ aparser.add_argument("-a", "--alpha",
     metavar="A",
     type=str,
     default="[a-z0-9]",
-    help="The program's alphabet. You can use regex sets. Ex: [@#] or [A-Z]."
+    help="The program's alphabet. Use regex sets. Ex: [@#] or [a-z]."
          " Default [a-z0-9]. Mayus are discouraged."
     )
 aparser.add_argument("-r", "--ret",
@@ -39,6 +38,12 @@ aparser.add_argument("-v", "--verbosity",
     choices=["DEBUG", "INFO", "WARNING"],
     help="Logging verbosity. DEBUG, INFO, WARNING are available."
     )
+aparser.add_argument("-O",
+    metavar="O",
+    type=int,
+    default=0,
+    choices=[0,1],
+    help="Optimaziations. Setting this to 1 will use the macro's python code")
 aparser.add_argument('-ns',
     metavar='N',
     type=int,
@@ -63,7 +68,8 @@ if __name__=="__main__":
         sys.tracebacklimit = -1
 
     logging.debug(f"Arguments: {args}")
-    prog = clean_program(args.input.read())
+    prog = args.input.read()
     logging.debug(f"Program: {prog}")
-    program = VonNeumannLanguage(prog, alph=args.alpha)
+    settings = LanguageSettings(args.alpha, instructions.instruction_dict, args.O)
+    program = VonNeumannProgram(prog, settings=settings)
     print(program(args.ns, args.ws, args.ret))

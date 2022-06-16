@@ -1,0 +1,34 @@
+{V1<-V2+V3} {
+    V4 <- V2
+    V5 <- V3
+    A3 IF V5 /= 0 GOTO A1
+       GOTO A2
+    A1 V5 <- V5 .- 1
+       V4 <- V4 + 1
+       GOTO A3
+    A2 V1 <- V4
+} !!
+V[4] = V[2]+V[3]
+V[5] = 0
+V[1] = V[2]+V[3]
+!!
+
+{V1<-V2*V3} {
+    V4 <- V2
+    V5 <- V3
+    A3 IF V5 /= 0 GOTO A1
+       GOTO A2
+    A1 V5 <- V5 .- 1
+       [V4 <- V4 + V2]
+       GOTO A3
+    A2 V1 <- V4
+} !!
+V[4] = V[2]*V[3]
+V[5] = 0
+V[1] = V[2]*V[3]
+!!
+
+[N0 <- N0*N1]
+L0 IF N0 /= 0 GOTO L2
+GOTO L0
+L2 SKIP
