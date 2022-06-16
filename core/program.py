@@ -40,7 +40,11 @@ class VonNeumannProgram(object):
                                        self.macro_state)
 
         self.instrs = [x[1] for x in self.parser.instrs]
-        self.labels = {int(l[0]):i for i,l in enumerate(self.parser.instrs) if l[0] is not None}
+        self.labels = {}
+        for i,l in enumerate(self.parser.instrs):
+            label = int(l[0]) if l[0] else None
+            if (label is not None) and (label not in self.labels):
+                self.labels[label] = i
 
     def get_regex(self):
         if (hasattr(self,"_regex")):
@@ -89,3 +93,6 @@ class VonNeumannProgram(object):
             return numbs[0]
         elif (ret == 'w'):
             return words[0]
+
+    def get_expanded_program(self):
+        return self.parser.get_program_str()

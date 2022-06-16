@@ -212,7 +212,8 @@ class MacroCall(VonNeumannInstruction):
 
     def effect(self, numbs, words):
         label, numbs, words = self.macro(numbs, words)
-        self._jump(label)
+        if label is not None:
+            self._jump(label)
         return numbs, words
 
     def get_used_vars(self):

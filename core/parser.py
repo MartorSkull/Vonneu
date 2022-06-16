@@ -49,7 +49,8 @@ class VonNeumannParser(object):
             self.used_vars = tuple(
                 self.used_vars[i].union(set(var[i])) for i in range(3)
             )
-            self.instrs.append((m.group(1), inst))
+            l = int(m.group(1)) if m.group(1) is not None else None
+            self.instrs.append((l, inst))
         if self.inside_macro is not None:
             varis = [set(), set(), set()]
             for i in range(3):
@@ -57,6 +58,9 @@ class VonNeumannParser(object):
                     self.inside_macro.ctx_used_vars[i]
                     )
             self.used_vars = tuple(varis)
+        for l, _ in self.instrs:
+            if l is not None:
+                self.used_vars[2].add(l)
         for i, linst in enumerate(self.instrs):
             l = linst[0]
             inst = linst[1]
@@ -75,3 +79,11 @@ class VonNeumannParser(object):
         self._regex = r
         logging.debug(f"Language Regex={self._regex}")
         return r
+
+    def get_program_str(self):
+        program = ""
+        for l,i in self.instrs:
+            if l is not None:
+                program += f"L{l} "
+            program += f"{str(i)}\n"
+        return program

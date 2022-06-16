@@ -71,5 +71,12 @@ if __name__=="__main__":
     prog = args.input.read()
     logging.debug(f"Program: {prog}")
     settings = LanguageSettings(args.alpha, instructions.instruction_dict, args.O)
+    for s in args.ws:
+        for c in s:
+            if (c not in args.alpha):
+                raise ValueError(
+                    "Words passed to the program must be on the given alphabet"
+                    f"({args.alpha})")
     program = VonNeumannProgram(prog, settings=settings)
+
     print(program(args.ns, args.ws, args.ret))

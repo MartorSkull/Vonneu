@@ -168,9 +168,22 @@ class VonNeumannMacro:
     def __call__(self, numbs, words):
         V = OptCodeVariables(self.var_map[0], numbs)
         W = OptCodeVariables(self.var_map[1], words)
-        A = OptCodeLabels(self.var_map[2])
-        exec(self.template.opt_code)
-        return None, numbs, words
+        out_labels = {}
+        for k, v in self.var_map[2].items():
+            if k in self.template.get_parameters()[2]:
+                out_labels[k] = v
+        A = OptCodeLabels(out_labels)
+        GOTO = self._jump
+        label = None
+        try:
+            exec(self.template.opt_code)
+        except OutsideJump as e:
+            label = e.args[0]
+        return label, numbs, words
+
+    def _jump(self, label):
+        lab = label
+        raise OutsideJump(lab)
 
 class OptCodeLabels:
     """This class represents the labels inside the optimized code"""
@@ -212,3 +225,6 @@ class OptCodeVariables:
 
 class MacroError(Exception):
     """Used when mistakes are made in the Macro class usage"""
+
+class OutsideJump(Exception):
+    """Used when a jump to an outside label is called from a macro optimized code"""
