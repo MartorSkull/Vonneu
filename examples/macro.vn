@@ -14,7 +14,7 @@ V[1] = V[2]+V[3]
 !!
 
 {V1<-V2*V3} {
-    V4 <- V2
+    V4 <- 0
     V5 <- V3
     A3 IF V5 /= 0 GOTO A1
        GOTO A2
