@@ -5,7 +5,6 @@ from .parser import *
 from .utils import *
 
 class VonNeumannMacroTemplate(object):
-    var_match = r"([VWA])([0-9]+)"
     match = r"(?:{(.*?)}[ \n]*)(?:{(.*?)}[ \n]*)(?:!!(.*?)!!)?"
     opt_code = None
     def __init__(self, macro, settings, macro_state):
@@ -26,7 +25,7 @@ class VonNeumannMacroTemplate(object):
         if (hasattr(self, "vars_on_name")):
             return self.vars_on_name
         self.vars_on_name = ([], [], [])
-        varis = re.finditer(self.var_match, self.name)
+        varis = re.finditer(AUX_MATCH, self.name)
         for i in varis:
             var = i.group(2)
             tp = i.group(1)
@@ -48,7 +47,7 @@ class VonNeumannMacroTemplate(object):
 
     def get_auxiliary(self):
         if not hasattr(self,"auxiliary"):
-            matches = re.finditer(self.var_match, self.code)
+            matches = re.finditer(AUX_MATCH, self.code)
             aux = (set(),set(),set())
             for match in matches:
                 tp = match.group(1)
@@ -107,49 +106,45 @@ class VonNeumannMacro:
         self.code = template.code
         self.template = template
         self.compiled = False
-        self.var_map = (dict(), dict(), dict())
+        self.var_map = [dict(), dict(), dict()]
         self.parsed_insts = None
         self.ctx_used_vars = None
 
         match = re.fullmatch(self.template.get_syntmatch(), self.inst)
-        self.arguments = ([], [], [])
+        arguments = ([], [], [])
         for i in range(1, len(match.groups())+1, 2):
             tp = match.group(i)
             var = match.group(i+1)
-            self.arguments[VAR_TP_INDX[tp]].append(int(var))
+            arguments[VAR_TP_INDX[tp]].append(int(var))
 
         for i, args_tp, para_tp in zip(range(3),
-                                    self.arguments,
+                                    arguments,
                                     self.template.get_parameters()):
             for arg, para in zip(args_tp, para_tp):
                 self.var_map[i][para] = arg
 
     def get_used_vars(self):
-        return tuple( list(x.values()) for x in self.var_map )
-
-    def get_used_vars_set(self):
         return tuple( set(x.values()) for x in self.var_map )
 
-    def compile(self, used_vars):
+    def compile(self):
         if self.compiled:
             return
         self.compiled = True
         for i, vars_tp, aux_tp in zip(range(3),
-                                   used_vars,
+                                   self.template.macro_state.get_used_vars(),
                                    self.template.get_auxiliary()):
             end = max(vars_tp) if vars_tp else 0
             complete = set(range(0, end+len(aux_tp)+1))
             diff = complete.difference(vars_tp)
             for code, mape in zip(aux_tp, diff):
                 self.var_map[i][code] = mape
+                self.template.macro_state.take_var(i,code)
+
+
         self.code = re.sub(
             fr"([VWA])({NUM_RE})",
             self._translate_aux_var,
             self.code)
-        vars = self.get_used_vars_set()
-        self.ctx_used_vars = tuple(
-            used_vars[i].union(vars[i]) for i in range(3)
-        )
 
     def _translate_aux_var(self, match):
         var_tp = AUX_TO_VAR[match.group(1)]

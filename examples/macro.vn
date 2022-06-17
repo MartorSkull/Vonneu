@@ -1,12 +1,12 @@
 {V1<-V2+V3} {
-    V4 <- V2
-    V5 <- V3
-    A3 IF V5 /= 0 GOTO A1
-       GOTO A2
-    A1 V5 <- V5 .- 1
-       V4 <- V4 + 1
-       GOTO A3
-    A2 V1 <- V4
+   V4 <- V2
+   V5 <- V3
+   A3 IF V5 /= 0 GOTO A1
+      GOTO A2
+   A1 V5 <- V5 .- 1
+      V4 <- V4 + 1
+      GOTO A3
+   A2 V1 <- V4
 } !!
 V[4] = V[2]+V[3]
 V[5] = 0
@@ -14,21 +14,59 @@ V[1] = V[2]+V[3]
 !!
 
 {V1<-V2*V3} {
-    V4 <- 0
-    V5 <- V3
-    A3 IF V5 /= 0 GOTO A1
-       GOTO A2
-    A1 V5 <- V5 .- 1
-       [V4 <- V4 + V2]
-       GOTO A3
-    A2 V1 <- V4
+   V4 <- 0
+   V5 <- V3
+   A3 IF V5 /= 0 GOTO A1
+      GOTO A2
+   A1 V5 <- V5 .- 1
+      [V4 <- V4 + V2]
+      GOTO A3
+   A2 V1 <- V4
 } !!
 V[4] = V[2]*V[3]
 V[5] = 0
 V[1] = V[2]*V[3]
 !!
 
-[N0 <- N0*N1]
-L0 IF N0 /= 0 GOTO L2
-GOTO L0
-L2 SKIP
+{V1<-V2^V3} {
+   V4 <- 0
+   V4 <- V4 + 1
+   V5 <- V3
+   A3 IF V5 /= 0 GOTO A1
+      GOTO A2
+   A1 V5 <- V5 .- 1
+      [V4 <- V4 * V2]
+      GOTO A3
+   A2 V1 <- V4
+} !!
+V[4] = V[2]**V[3]
+V[5] = 0
+V[1] = V[2]**V[3]
+!!
+
+{IF V0 /= V1 GOTO A0} {
+   V2 <- V0
+   V3 <- V1
+   A1 IF V2 /= 0 GOTO A2
+      GOTO A3
+   A2 IF V3 /= 0 GOTO A4
+      GOTO A6
+   A3 IF V3 /= 0 GOTO A6
+      GOTO A5
+   A4 V2 <- V2 .- 1
+      V3 <- V3 .- 1
+      GOTO A1
+   A6 GOTO A0
+   A5 SKIP
+} !!
+if (V[0]!=V[1]):
+   GOTO(A[0])
+!!
+
+[N2 <- N0^N1]
+N0 <- N0 .- 1
+[N3 <- N0^N1]
+N0 <- 0
+[IF N2 /= N3 GOTO L0]
+N0 <- N0 + 1
+L0 SKIP

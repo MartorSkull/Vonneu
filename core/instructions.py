@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import re
 
-from .utils import NUM_RE
+from .utils import NUM_RE, MacroState
 
 class VonNeumannInstruction(object):
     instMatch = None
     syntMatch = None
     humInst = None
     next = None
-    def __init__(self, inst, alph):
+    def __init__(self, inst, alph, macro_state: MacroState, inside_macro):
         self.inst = inst
         self.alph = alph
         self.instMatch = self.instMatch.format(alph=self.alph)
@@ -18,6 +18,7 @@ class VonNeumannInstruction(object):
             self.args = list(map(int, self.match.groups()))
         else:
             raise SyntaxError(f"Unable to parse instruction: {self.inst}")
+        macro_state.update_used_vars(self.get_used_vars())
 
     def __str__(self):
         return self.humInst.format(*self.args)
@@ -83,7 +84,7 @@ class AssignNumber(VonNeumannInstruction):
 
 class AssignZero(VonNeumannInstruction):
     instMatch = fr"N{NUM_RE}<-0"
-    syntMatch = fr"N([0-9])+<-0"
+    syntMatch = fr"N({NUM_RE})<-0"
     humInst = "N{0} <- 0"
 
     def effect(self, numbs, words):
@@ -185,8 +186,6 @@ class Skip(VonNeumannInstruction):
     instMatch = r"SKIP"
     syntMatch = r"SKIP"
     humInst = "SKIP"
-    def __init__(self, inst="SKIP", alph="[]"):
-        super().__init__(inst, alph)
 
     def effect(self, numbs, words):
         return numbs, words
@@ -203,6 +202,7 @@ class MacroCall(VonNeumannInstruction):
         self.alph = alph
         self.inside_macro = inside_macro
         self.macro = macro_state.match(self.name, inside_macro)
+        macro_state.update_used_vars(self.get_used_vars())
 
     def __str__(self):
         return self.humInst.format(self.name)
@@ -219,8 +219,8 @@ class MacroCall(VonNeumannInstruction):
     def get_used_vars(self):
         return self.macro.get_used_vars()
 
-    def compile(self, used_vars):
-        return self.macro.compile(used_vars)
+    def compile(self):
+        return self.macro.compile()
 
     def parse_code(self):
         return self.macro.parse_code()

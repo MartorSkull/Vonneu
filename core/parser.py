@@ -16,7 +16,6 @@ class VonNeumannParser(object):
         self.settings = settings
         self.macro_state = macro_state
         self.inside_macro = inside_macro
-        self.used_vars = (set(), set(), set())
         self._parse_program()
 
     def _parse_program(self):
@@ -36,40 +35,33 @@ class VonNeumannParser(object):
             g = m.lastgroup
             try:
                 inst_cls = self.settings.instrs[g]
-                if (inst_cls == MacroCall):
-                    inst = inst_cls(m.group(g),
-                                    self.settings.alph,
-                                    self.macro_state,
-                                    self.inside_macro)
-                else:
-                    inst = inst_cls(m.group(g), self.settings.alph)
+                inst = inst_cls(m.group(g),
+                                self.settings.alph,
+                                self.macro_state,
+                                self.inside_macro)
             except SyntaxError as e:
                 raise SyntaxError(f"On line {i+1}. {e.msg}")
-            var = inst.get_used_vars()
-            self.used_vars = tuple(
-                self.used_vars[i].union(set(var[i])) for i in range(3)
-            )
-            l = int(m.group(1)) if m.group(1) is not None else None
+
+            l = m.group(1)
+            if (l is not None):
+                l = int(l)
+                self.macro_state.take_label(l)
             self.instrs.append((l, inst))
-        if self.inside_macro is not None:
-            varis = [set(), set(), set()]
-            for i in range(3):
-                varis[i] = self.used_vars[i].union(
-                    self.inside_macro.ctx_used_vars[i]
-                    )
-            self.used_vars = tuple(varis)
-        for l, _ in self.instrs:
-            if l is not None:
-                self.used_vars[2].add(l)
+
         for i, linst in enumerate(self.instrs):
             l = linst[0]
             inst = linst[1]
             if (isinstance(inst,MacroCall)):
-                inst.compile(self.used_vars)
+                inst.compile()
                 if (self.settings.optim==0 or not inst.optimized):
                     macro_inst = inst.parse_code()
                     if l is not None:
-                        macro_inst = [(l, Skip())]+macro_inst
+                        s = Skip(
+                            "SKIP",
+                            self.settings.alph,
+                            self.macro_state,
+                            self.inside_macro)
+                        macro_inst = [(l, s)]+macro_inst
                     self.instrs[i:i+1] = macro_inst
 
     def get_regex(self):

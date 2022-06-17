@@ -44,6 +44,12 @@ aparser.add_argument("-O",
     default=0,
     choices=[0,1],
     help="Optimaziations. Setting this to 1 will use the macro's python code")
+aparser.add_argument("-m", "--max-steps",
+    metavar="M",
+    type=int,
+    default=None,
+    help="Max ammount of steps to run the program"
+)
 aparser.add_argument('-ns',
     metavar='N',
     type=int,
@@ -78,5 +84,4 @@ if __name__=="__main__":
                     "Words passed to the program must be on the given alphabet"
                     f"({args.alpha})")
     program = VonNeumannProgram(prog, settings=settings)
-
-    print(program(args.ns, args.ws, args.ret))
+    print(program(args.ns, args.ws, args.ret, args.max_steps))

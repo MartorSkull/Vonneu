@@ -42,9 +42,10 @@ class VonNeumannProgram(object):
         self.instrs = [x[1] for x in self.parser.instrs]
         self.labels = {}
         for i,l in enumerate(self.parser.instrs):
-            label = int(l[0]) if l[0] else None
+            label = int(l[0]) if l[0] is not None else None
             if (label is not None) and (label not in self.labels):
                 self.labels[label] = i
+        logging.info(f"Expanded Program :\n{self.parser.get_program_str()}")
 
     def get_regex(self):
         if (hasattr(self,"_regex")):
@@ -54,9 +55,9 @@ class VonNeumannProgram(object):
         logging.debug(f"Language Regex={self._regex}")
         return r
 
-    def __call__(self, numbs, words, ret):
+    def __call__(self, numbs, words, ret, max_steps=None):
         logging.debug(f"Called => prog({numbs}, {words}, {ret})")
-        return self.run(numbs, words, ret=ret)
+        return self.run(numbs, words, ret, max_steps)
 
     def _str_state(self, i, l, numbs, words):
         if (not hasattr(self,"n_inst")):
@@ -67,7 +68,7 @@ class VonNeumannProgram(object):
         form = form+(f"\twords={dict(words.items())}" if words else "")
         return form
 
-    def run(self, ns, ws, ret):
+    def run(self, ns, ws, ret, max_steps):
         numbs = defaultdict(lambda: 0)
         words = defaultdict(lambda: "")
         i=0
@@ -79,7 +80,8 @@ class VonNeumannProgram(object):
             words[i] = w
         # Main execution loop
         i = 0
-        while (i<len(self.instrs)):
+        s = 0
+        while i<len(self.instrs):
             # Exec instruction
             l, numbs, words = self.instrs[i](numbs, words)
             logging.info(self._str_state(i, l, numbs, words))
@@ -88,6 +90,9 @@ class VonNeumannProgram(object):
                 i = self.labels[l]
             else:
                 i += 1
+            if max_steps is not None and max_steps>=s:
+                raise RuntimeError("Max ammount of steps reached")
+            s+=1
         # Once finished return what was asked
         if (ret == 'n'):
             return numbs[0]
