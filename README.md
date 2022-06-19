@@ -82,9 +82,9 @@ L1 SKIP
 This code will be expanded as follows:
 ```
 N0 <- N2
-N0 <- N0 .- 1
-N1 <- N0
-L0 IF N1 /= 0 GOTO L1
+N0 <- N0.-1
+N1 <- N3
+L0 IF N1/=0 GOTO L1
 GOTO L0
 L1 SKIP
 ```
